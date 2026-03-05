@@ -1,12 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const uri = "mongodb+srv://sjt2908_db_user:b1gdump3r@cluster0.mng7oy4.mongodb.net/User_Management?retryWrites=true&w=majority";
+const uri = process.env.MONGO_URI;
 
 mongoose.connect(uri)
   .then(() => console.log("MongoDB connected!"))
