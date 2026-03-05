@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Management</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      gap: 2rem;
+      padding: 2rem 0;
+    }
+
+    .form-container {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: bold;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #357abd;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: #f0f2f5;
+      color: #333;
+      font-weight: bold;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Create New User</h2>
+    <form id="createUserForm">
+
+      <div class="form-group">
+        <label for="userId">User ID</label>
+        <input type="text" id="userId" name="userId" placeholder="e.g. user_001" required />
+      </div>
+
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" name="firstName" placeholder="e.g. John" required />
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" name="lastName" placeholder="e.g. Doe" required />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="e.g. john@example.com" required />
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age</label>
+        <input type="number" id="age" name="age" placeholder="e.g. 25" min="1" required />
+      </div>
+
+      <button type="submit">Create User</button>
+    </form>
+    <p id="message"></p>
+  </div>
+
+  <div class="form-container">
+    <h2>Delete User</h2>
+    <form id="deleteUserForm">
+      <div class="form-group">
+        <label for="deleteUserId">User ID</label>
+        <input type="text" id="deleteUserId" name="deleteUserId" placeholder="e.g. user_001" required />
+      </div>
+      <button type="submit" style="background-color: #e24a4a;">Delete User</button>
+    </form>
+    <p id="deleteMessage"></p>
+  </div>
+
+  <!-- Sort Users -->
+  <div class="form-container">
+    <h2>Sort Users</h2>
+    <form id="sortForm">
+      <div class="form-group">
+        <label for="sortOrder">Sort by First Name</label>
+        <select id="sortOrder">
+          <option value="asc">Ascending (A → Z)</option>
+          <option value="desc">Descending (Z → A)</option>
+        </select>
+      </div>
+      <button type="submit">Sort</button>
+    </form>
+    <div id="sortResults"></div>
+  </div>
+
+  <!-- Search Users -->
+  <div class="form-container">
+    <h2>Search Users</h2>
+    <form id="searchForm">
+      <div class="form-group">
+        <label for="searchFirstName">First Name</label>
+        <input type="text" id="searchFirstName" placeholder="e.g. John" />
+      </div>
+      <div class="form-group">
+        <label for="searchLastName">Last Name</label>
+        <input type="text" id="searchLastName" placeholder="e.g. Doe" />
+      </div>
+      <button type="submit">Search</button>
+    </form>
+    <div id="searchResults"></div>
+  </div>
+
+  <script>
+    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        userId:    document.getElementById('userId').value,
+        firstName: document.getElementById('firstName').value,
+        lastName:  document.getElementById('lastName').value,
+        email:     document.getElementById('email').value,
+        age:       Number(document.getElementById('age').value),
+      };
+
+      const msg = document.getElementById('message');
+
+      try {
+        const res = await fetch('/api/adduser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          msg.style.color = 'green';
+          msg.textContent = 'User created successfully!';
+          e.target.reset();
+        } else {
+          msg.style.color = 'red';
+          msg.textContent = result.error || 'Something went wrong.';
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.textContent = 'Could not connect to server.';
+      }
+    });
+
+    document.getElementById('deleteUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const userId = document.getElementById('deleteUserId').value;
+      const msg = document.getElementById('deleteMessage');
+
+      try {
+        const res = await fetch(`/api/deleteuser/${encodeURIComponent(userId)}`, {
+          method: 'DELETE',
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          msg.style.color = 'green';
+          msg.textContent = 'User deleted successfully!';
+          e.target.reset();
+        } else {
+          msg.style.color = 'red';
+          msg.textContent = result.error || 'Something went wrong.';
+        }
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.textContent = 'Could not connect to server.';
+      }
+    });
+
+    // Sort
+    document.getElementById('sortForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const order = document.getElementById('sortOrder').value;
+      try {
+        const res = await fetch(`/api/users/sort?order=${order}`);
+        const users = await res.json();
+        document.getElementById('sortResults').innerHTML = buildTable(users);
+      } catch (err) {
+        document.getElementById('sortResults').innerHTML = '<p style="color:red">Could not connect to server.</p>';
+      }
+    });
+
+    // Search
+    document.getElementById('searchForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const firstName = document.getElementById('searchFirstName').value;
+      const lastName  = document.getElementById('searchLastName').value;
+      const params = new URLSearchParams();
+      if (firstName) params.append('firstName', firstName);
+      if (lastName)  params.append('lastName', lastName);
+      try {
+        const res = await fetch(`/api/users/search?${params.toString()}`);
+        const users = await res.json();
+        document.getElementById('searchResults').innerHTML = buildTable(users);
+      } catch (err) {
+        document.getElementById('searchResults').innerHTML = '<p style="color:red">Could not connect to server.</p>';
+      }
+    });
+
+    function buildTable(users) {
+      if (!users.length) return '<p style="color:#888;margin-top:1rem">No users found.</p>';
+      return `
+        <table>
+          <thead>
+            <tr><th>User ID</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Age</th></tr>
+          </thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td>${u.userId}</td>
+                <td>${u.firstName}</td>
+                <td>${u.lastName}</td>
+                <td>${u.email}</td>
+                <td>${u.age}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+  </script>
+
+</body>
+</html>
